@@ -1,8 +1,10 @@
-==AjaxLoadTables==
+AjaxLoadTables
+==============
 
 Simple Plugin to populate a table with data obtained using ajax.
 
-==Instructions==
+Instructions
+============
 
 table.ajaxLoadTables({
     'url': "www.example.url/json",
@@ -18,5 +20,6 @@ table.ajaxLoadTables({
     ]
 });
 
-==To Do==
+To Do
+=====
  - Translate everything to english
