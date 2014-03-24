@@ -16,6 +16,17 @@
                     load(preparacion, false);
                 }
 
+                if (opts === 'datos') {
+                    var preparacion = $(tabla).data('preparacion');
+                    if (typeof preparacion === 'undefined')
+                        return;
+
+					if (preparacion.datos)
+						value.datos = preparacion.datos[preparacion.opciones.root];
+					else
+						null;
+                }
+
                 if (opts === 'primero') {
                     var preparacion = $(tabla).data('preparacion');
                     if (typeof preparacion === 'undefined')
@@ -98,12 +109,22 @@
             }
 
             if (typeof opts === 'object') {
+				
                 var preparacion = {};
                 preparacion.tabla = tabla;
                 preparacion.opciones = $.extend({},
                         $.fn.ajaxLoadTables.defaults, opts);
+				preparacion.opciones.params = $.extend({},preparacion.opciones.params,opts.params);
 
-                $(tabla).data('preparacion', preparacion);
+				
+				// Y renderizamos la cabecera una sola vez
+				$tabla = $(tabla);
+				$tabla.empty();
+				preparacion.thead = renderHead(preparacion);
+				$tabla.append(preparacion.thead);
+				
+				// almacenamos datos
+				$(tabla).data('preparacion', preparacion);
             }
 
         });
@@ -116,11 +137,11 @@
             data: par.opciones.params,
             dataType: 'JSON',
             success: function(obj) {
-                console.log(obj);
                 par.opciones.regTotales = parseInt(obj.total);
                 if ((pagi) && (pagi === true)) {
                     paginar(par.opciones);
                 }
+				par.datos = obj
                 render(obj, par);
             },
             error: function() {
@@ -135,15 +156,13 @@
         var configColumns = par.opciones.cols;
         
         var $table = $(par.tabla);
-        var $thead;
         var $tbody;
         
-        $table.empty();
+        $table.find('tbody').empty();
 
-        $thead = renderHead(par);
         $tbody = renderBody(obj, root, configColumns);
         
-        $table.append($thead);
+        //$table.append($thead);
         $table.append($tbody);
         renderLeyend(par);
         
@@ -160,18 +179,37 @@
 
                 $fila.append($th);
                 $th.click(function() {
-                    var orden = par.opciones.params.ordenar;
+                    var orden = par.opciones.params.ordenarTipo;
                     
                     if (orden === 'ASC') {
                         orden = 'DESC';
                     } else {
                         orden = 'ASC';
                     }
-                    par.opciones.params.ordenar = orden;
+                    par.opciones.params.ordenarTipo = orden;
                     par.opciones.params.ordenarPor = v.ordenar;
                     
-                    load(par, true);
+					var obj = $(this);
+					obj.parent().find('th.ordenar').removeClass('ordenar-ascendente').removeClass('ordenar-descendente');
+					
+					if (orden == 'ASC')
+						obj.addClass('ordenar-ascendente');
+					else
+						obj.addClass('ordenar-descendente');
+					
+                    load(par, false);
                 });
+
+				// Poner orden por defecto de la primera carga si está establecido
+
+				if (par.opciones.params.ordenarPor == v.ordenar)
+				{
+					if ((par.opciones.params.ordenarTipo+'').toUpperCase() == 'ASC')
+						$th.addClass('ordenar-ascendente');
+					else
+						$th.addClass('ordenar-descendente');
+				}
+
 
             } else {
                 var $th = $('<th>' + v.nombre + '</th>');
@@ -194,7 +232,7 @@
 
             $(configColumns).each(function(iColumna, columna) {
                 if (typeof columna.renderer === 'function') {
-                    var dataToRender = columna.renderer();
+                    var dataToRender = columna.renderer(iFila,iColumna,obj[root]);
                     var $td = $('<td>' + dataToRender + '</td>');
 
                     $filaTbody.append($td);
@@ -276,10 +314,11 @@
         total: 'totalFilas',
         id: 'idFila',
         params: {
-            limit: 3,
+            limit: 20,
             offset: 0,
             query: '',
-            ordenar: ''
+            ordenar: '',
+			ordenarPor: ''
         }
     };
 

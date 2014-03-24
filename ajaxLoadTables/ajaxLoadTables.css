@@ -1,0 +1,14 @@
+thead th.ordenar {
+	background-image: url(./img/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+
+thead th.ordenar-ascendente {
+	background-image: url(./img/desc.gif);
+}
+
+thead th.ordenar-descendente {
+	background-image: url(./img/asc.gif);
+}
