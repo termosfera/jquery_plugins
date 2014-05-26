@@ -7,17 +7,16 @@
     $.fn.ajaxLoadTables = function(opts, value) {
 
         return this.each(function(indice, tabla) {
+            var preparacion = $(tabla).data('preparacion');
 
             if (typeof opts === 'string') {
                 if (opts === 'load') {
-                    var preparacion = $(tabla).data('preparacion');
                     if (typeof preparacion === 'undefined')
                         return;
                     load(preparacion, false);
                 }
 
                 if (opts === 'datos') {
-                    var preparacion = $(tabla).data('preparacion');
                     if (typeof preparacion === 'undefined')
                         return;
 
@@ -28,7 +27,6 @@
                 }
 
                 if (opts === 'primero') {
-                    var preparacion = $(tabla).data('preparacion');
                     if (typeof preparacion === 'undefined')
                         return;
                     preparacion.opciones.params.offset = 0;
@@ -37,8 +35,6 @@
                 }
 
                 if (opts === 'siguiente') {
-                    var preparacion = $(tabla).data('preparacion');
-
                     if (typeof preparacion === 'undefined' ||
                             (preparacion.opciones.params.offset +
                                     preparacion.opciones.params.limit) >=
@@ -54,7 +50,6 @@
                 }
 
                 if (opts === 'anterior') {
-                    var preparacion = $(tabla).data('preparacion');
                     if (typeof preparacion === 'undefined' ||
                             preparacion.opciones.params.offset <= 0)
                         return;
@@ -67,8 +62,6 @@
                 }
 
                 if (opts === 'ultimo') {
-                    var preparacion = $(tabla).data('preparacion');
-
                     if (typeof preparacion === 'undefined')
                         return;
 
@@ -80,8 +73,6 @@
                 }
 
                 if (opts === 'registros') {
-                    var preparacion = $(tabla).data('preparacion');
-
                     if (typeof preparacion === 'undefined')
                         return;
 
@@ -94,8 +85,6 @@
                 }
 
                 if (opts === 'filtrar') {
-                    var preparacion = $(tabla).data('preparacion');
-
                     if (typeof preparacion === 'undefined')
                         return;
 
@@ -109,7 +98,6 @@
             }
 
             if (typeof opts === 'object') {
-
                 var preparacion = {};
                 preparacion.tabla = tabla;
                 preparacion.opciones = $.extend({},
