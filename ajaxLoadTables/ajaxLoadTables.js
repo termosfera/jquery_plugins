@@ -2,7 +2,7 @@
 
 ;(function($) {
 
-    $.fn.grid = function(opts, value) {
+    $.fn.ajaxLoadTables = function(opts, value) {
 
         return this.each(function(index, table) {
             var options;
@@ -45,22 +45,19 @@
                 }
                     
                 init(table, options);
-
             }
 
             if (typeof opts === 'object') {
-                options = $.extend({}, $.fn.grid.defaults, opts);
+                options = $.extend({}, $.fn.ajaxLoadTables.defaults, opts);
                 setTableOptions(table, options);
             }
-
         });
-
     };
 
     function setTableOptions(table, opts) {
         var $table = $(table);
 
-        $.get(opts.url, function(data) {
+        $.post(opts.url, opts.params, function(data) {
             var jsonData = $.parseJSON(data);
             opts.total = parseInt(jsonData.registros_totales);
             $table.data('options', opts);
@@ -77,6 +74,7 @@
     function init(table, opts) {
         $.post(opts.url, opts.params, function(data) {
             var jsonData = $.parseJSON(data);
+            opts.root = jsonData.filas;
             renderTable(table, jsonData, opts);
         });
     }
@@ -135,7 +133,7 @@
     function paginar(opts) {
         var $paginador = $("#paginas");
         
-        if (!$paginador || !$paginador.is('input'))
+        if (typeof $paginador === 'undefined' || !$paginador.is('input'))
             return;
         
         var desde = opts.params.offset;
@@ -144,11 +142,10 @@
         
         var placeholder = "Del " + desde + " al " + hasta + " de " + total;
         
-        $paginador.attr("placeholder", placeholder);
-        
+        $paginador.attr("placeholder", placeholder);        
     }
 
-    $.fn.grid.defaults = {
+    $.fn.ajaxLoadTables.defaults = {
         root: 'filas',
         total: 'totalFilas',
         id: 'idFila',
