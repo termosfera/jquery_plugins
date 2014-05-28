@@ -40,7 +40,7 @@
                     options.params.query = value;
                 }
 
-                if (opts === 'retistros' && typeof value === 'number') {
+                if (opts === 'registros' && typeof value === 'number') {
                     options.params.limit = value;
                 }
                     
