@@ -1,307 +1,163 @@
-/* 
- * Plugin para cargar tablas con datos obtenidos por AJAX
- */
+'use strict';
 
-(function($) {
+;(function($) {
 
-    $.fn.ajaxLoadTables = function(opts, value) {
+    $.fn.grid = function(opts, value) {
 
-        return this.each(function(indice, tabla) {
-            var preparacion = $(tabla).data('preparacion');
+        return this.each(function(index, table) {
+            var options;
 
-            if (typeof opts === 'string') {
-                if (opts === 'load') {
-                    if (typeof preparacion === 'undefined')
-                        return;
-                    load(preparacion, false);
-                }
-
-                if (opts === 'datos') {
-                    if (typeof preparacion === 'undefined')
-                        return;
-
-                    if (preparacion.datos)
-                        value.datos = preparacion.datos[preparacion.opciones.root];
-                    else
-                        null;
+            if (typeof opts === 'string' || opts === 'load') {
+                options = getTableOptions(table);
+                
+                if (typeof options === 'undefined') {                    
+                    return; // En caso de no disponer de configuracion detenemos plugin
                 }
 
                 if (opts === 'primero') {
-                    if (typeof preparacion === 'undefined')
-                        return;
-                    preparacion.opciones.params.offset = 0;
-                    paginar(preparacion.opciones);
-                    load(preparacion);
-                }
-
-                if (opts === 'siguiente') {
-                    if (typeof preparacion === 'undefined' ||
-                            (preparacion.opciones.params.offset +
-                                    preparacion.opciones.params.limit) >=
-                            preparacion.regTotales)
-                        return;
-
-                    preparacion.opciones.params.offset +=
-                            preparacion.opciones.params.limit;
-
-                    paginar(preparacion.opciones);
-
-                    load(preparacion);
+                    options.params.offset = 0;
                 }
 
                 if (opts === 'anterior') {
-                    if (typeof preparacion === 'undefined' ||
-                            preparacion.opciones.params.offset <= 0)
-                        return;
-                    preparacion.opciones.params.offset -=
-                            preparacion.opciones.params.limit;
+                    if (options.params.offset <= 0)
+                        alert("Esta es la primera pagina!");
+                    else
+                        options.params.offset = options.params.offset - options.params.limit;
+                }
 
-                    paginar(preparacion.opciones);
-
-                    load(preparacion);
+                if (opts === 'siguiente') {
+                    if ((options.params.offset + options.params.limit) >= options.total)
+                        alert("Ha llegado a la ultima pagina!");
+                    else
+                        options.params.offset = options.params.offset + options.params.limit;
                 }
 
                 if (opts === 'ultimo') {
-                    if (typeof preparacion === 'undefined')
-                        return;
-
-                    preparacion.opciones.params.offset = 'ultimo';
-
-                    paginar(preparacion.opciones);
-
-                    load(preparacion);
+                    options.params.offset = options.total - options.params.limit;
                 }
 
-                if (opts === 'registros') {
-                    if (typeof preparacion === 'undefined')
-                        return;
-
-                    preparacion.opciones.params.offset = 0;
-                    preparacion.opciones.params.limit = parseInt(value);
-
-                    paginar(preparacion.opciones);
-
-                    load(preparacion);
+                if (opts === 'filtrar' && typeof value === 'string') {
+                    options.params.query = value;
                 }
 
-                if (opts === 'filtrar') {
-                    if (typeof preparacion === 'undefined')
-                        return;
-
-                    preparacion.opciones.params.offset = 0;
-                    preparacion.opciones.params.query = $.trim(value);
-
-                    paginar(preparacion.opciones);
-
-                    load(preparacion, true);
+                if (opts === 'retistros' && typeof value === 'number') {
+                    options.params.limit = value;
                 }
+                    
+                init(table, options);
+
             }
 
             if (typeof opts === 'object') {
-                var preparacion = {};
-                preparacion.tabla = tabla;
-                preparacion.opciones = $.extend({},
-                        $.fn.ajaxLoadTables.defaults, opts);
-                preparacion.opciones.params = $.extend({}, preparacion.opciones.params, opts.params);
-
-                // Y renderizamos la cabecera una sola vez
-                $tabla = $(tabla);
-                $tabla.empty();
-                preparacion.thead = renderHead(preparacion);
-                $tabla.append(preparacion.thead);
-
-                // almacenamos datos
-                $(tabla).data('preparacion', preparacion);
+                options = $.extend({}, $.fn.grid.defaults, opts);
+                setTableOptions(table, options);
             }
 
         });
+
     };
 
-    function load(par, pagi) {
-        $.ajax({
-            type: "POST",
-            url: par.opciones.url,
-            data: par.opciones.params,
-            dataType: 'JSON',
-            success: function(obj) {
-                par.opciones.regTotales = parseInt(obj.total);
-                if ((pagi) && (pagi === true)) {
-                    paginar(par.opciones);
-                }
-                par.datos = obj
-                render(obj, par);
-            },
-            error: function() {
-                console.warn("Error while loading data");
-            }
+    function setTableOptions(table, opts) {
+        var $table = $(table);
+
+        $.get(opts.url, function(data) {
+            var jsonData = $.parseJSON(data);
+            opts.total = parseInt(jsonData.registros_totales);
+            $table.data('options', opts);
         });
-
     }
 
-    function render(obj, par) {
-        var root = par.opciones.root;
-        var configColumns = par.opciones.cols;
+    function getTableOptions(table) {
+        var $table = $(table);
+        var options = $table.data('options');
 
-        var $table = $(par.tabla);
-        var $tbody;
-
-        $table.find('tbody').empty();
-
-        $tbody = renderBody(obj, root, configColumns);
-
-        //$table.append($thead);
-        $table.append($tbody);
-        renderLeyend(par);
-
+        return options;
     }
 
-    function renderHead(par) {
+    function init(table, opts) {
+        $.post(opts.url, opts.params, function(data) {
+            var jsonData = $.parseJSON(data);
+            renderTable(table, jsonData, opts);
+        });
+    }
+
+    function renderThead(opts) {
         var $thead = $('<thead>');
-        var $fila = $('<tr>');
+        var $tr = $('<tr>');
+        var $th;
 
-        $.each(par.opciones.cols, function(i, v) {
-
-            if (v.ordenar) {
-                var $th = $('<th class="ordenar">' + v.nombre + '</th>');
-
-                $fila.append($th);
-                $th.click(function() {
-                    var orden = par.opciones.params.ordenarTipo;
-
-                    if (orden === 'ASC')
-                        orden = 'DESC';
-                    else
-                        orden = 'ASC';
-                    
-                    par.opciones.params.ordenarTipo = orden;
-                    par.opciones.params.ordenarPor = v.ordenar;
-
-                    var obj = $(this);
-                    obj.parent().find('th.ordenar')
-                                .removeClass('ordenar-ascendente')
-                                .removeClass('ordenar-descendente');
-
-                    if (orden === 'ASC')
-                        obj.addClass('ordenar-ascendente');
-                    else
-                        obj.addClass('ordenar-descendente');
-
-                    load(par, false);
-                });
-
-                // Poner orden por defecto de la primera carga si está establecido
-                if (par.opciones.params.ordenarPor === v.ordenar) {
-                    if ((par.opciones.params.ordenarTipo + '').toUpperCase() === 'ASC')
-                        $th.addClass('ordenar-ascendente');
-                    else
-                        $th.addClass('ordenar-descendente');
-                }
-
-            } else {
-                var $th = $('<th>' + v.nombre + '</th>');
-
-                $fila.append($th);
-            }
+        $.each(opts.cols, function(i, v) {
+            $th = $('<th>' + v.nombre + '</th>');
+            $tr.append($th);
         });
-
-        $thead.append($fila);
+        $thead.append($tr);
 
         return $thead;
-
     }
 
-    function renderBody(obj, root, configColumns) {
+    function renderTbody(data, opts) {
         var $tbody = $('<tbody>');
+        var $tr;
+        var $td;
 
-        $(obj[root]).each(function(iFila, fila) {
-            var $filaTbody = $('<tr>');
-
-            $(configColumns).each(function(iColumna, columna) {
-                if (typeof columna.renderer === 'function') {
-                    var dataToRender = columna.renderer(iFila, iColumna, obj[root]);
-                    var $td = $('<td>' + dataToRender + '</td>');
-
-                    $filaTbody.append($td);
-
+        $.each(data.filas, function(rowIndex, libro) {
+            $tr = $('<tr>');
+            
+            $.each(opts.cols, function(columnIndex, column) {
+                if (typeof column.renderer === 'function') {
+                    var rendered = column.renderer(rowIndex, columnIndex, data.filas);
+                    $td = $('<td>' + rendered + '</td>');
+                    $tr.append($td);                    
                 } else {
-                    var $td = $('<td>' + fila[columna.dato] + '</td>');
-
-                    $filaTbody.append($td);
+                    $td = $('<td>' + libro[column.dato] + '</td>');
+                    $tr.append($td);                    
                 }
             });
-            $tbody.append($filaTbody);
-
+            $tbody.append($tr);
+            
         });
 
         return $tbody;
     }
 
-    function renderLeyend(par) {
-        var msg = 'No hay registros';
-        var regTotales = par.opciones.regTotales;
-        var posPrimeraLinea = par.opciones.params.offset;
-        var limite = par.opciones.params.limit;
-        var inicio,
-            fin;
+    function renderTable(table, data, opts) {
+        var $table = $(table);
+        var $thead = renderThead(opts);
+        var $tbody = renderTbody(data, opts);
+        
+        paginar(opts);
 
-        if (regTotales !== 0)
-            inicio = posPrimeraLinea + 1;
-
-        fin = limite + posPrimeraLinea;
-
-        if (fin > regTotales)
-            fin = regTotales;
-
-        msg = 'Del ' + inicio + ' al ' + fin + ' de ' + regTotales;
-
-        if (fin > regTotales)
-            fin = regTotales;
-
-        var $leyenda = $('.' + par.opciones['cls-leyenda']);
-        $leyenda.attr('placeholder', msg);
-
+        $table.empty();
+        $table.append($thead);
+        $table.append($tbody);
+    }
+    
+    function paginar(opts) {
+        var $paginador = $("#paginas");
+        
+        if (!$paginador || !$paginador.is('input'))
+            return;
+        
+        var desde = opts.params.offset;
+        var hasta = opts.params.offset + opts.params.limit;
+        var total = opts.total;
+        
+        var placeholder = "Del " + desde + " al " + hasta + " de " + total;
+        
+        $paginador.attr("placeholder", placeholder);
+        
     }
 
-    function paginar(opciones) {
-        var pagTotal = parseInt(opciones.regTotales / opciones.params.limit);
-
-        if (opciones.regTotales % opciones.params.limit !== 0)
-            pagTotal++;
-
-        opciones.params.paginaTotal = pagTotal;
-
-        var pagActual = 'pagina actual';
-
-        if (opciones.params.offset <= 0) {
-            pagActual = 1;
-
-        } else if ((opciones.params.offset === 'ultimo') ||
-                (opciones.params.offset >= opciones.regTotales)) {
-            console.warn('Estamos en la ultima pagina');
-            pagActual = pagTotal;
-            opciones.params.offset = (pagActual - 1) * opciones.params.limit;
-
-        } else {
-            pagActual = (opciones.params.offset / opciones.params.limit) + 1;
-
-        }
-
-        opciones.params.offset = (pagActual - 1) * opciones.params.limit;
-        opciones.params.paginaActual = pagActual;
-
-    }
-
-    $.fn.ajaxLoadTables.defaults = {
+    $.fn.grid.defaults = {
         root: 'filas',
         total: 'totalFilas',
         id: 'idFila',
         params: {
             limit: 20,
             offset: 0,
-            query: '',
-            ordenar: '',
-            ordenarPor: ''
+            query: ''
         }
     };
 
 })(jQuery);
+
