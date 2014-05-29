@@ -111,11 +111,11 @@
         var $this = $(element);
         var $table = $this.closest('table');
                 
+        opts.params.sortCol = name;
+
         if (opts.params.sortOrder === 'ASC') {
-            opts.params.sortCol = name;
             opts.params.sortOrder = 'DESC';
         } else if (opts.params.sortOrder === 'DESC') {
-            opts.params.sortCol = name;
             opts.params.sortOrder = 'ASC';
         }
         opts.params.sorted = true;
