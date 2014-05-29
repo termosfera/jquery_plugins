@@ -20,10 +20,10 @@ $table.ajaxLoadTables({
             'sorted': false
         },
         cols: [
-            {'nombre': 'Isbn', 'dato': 'ISBN13_guiones', 'ordenar': true},
-            {'nombre': 'Fec. Publicación', 'dato': 'fecha_public', 'ordenar': true},
-            {'nombre': 'Colección', 'dato': 'coleccion'},
-            {'nombre': 'Título', 'dato': 'titulo', 'renderer': rTitulo, 'ordenar': true}
+            { 'nombre': 'Isbn', 'dato': 'ISBN13_guiones', 'ordenar': true },
+            { 'nombre': 'Fec. Publicación', 'dato': 'fecha_public', 'ordenar': true },
+            { 'nombre': 'Colección', 'dato': 'coleccion' },
+            { 'nombre': 'Título', 'dato': 'titulo', 'renderer': rTitulo, 'ordenar': true }
         ]
     });
 
