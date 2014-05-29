@@ -1,9 +1,8 @@
 'use strict';
 
-;
-(function($) {
+;(function($) {
 
-    $.fn.grid5 = function(opts, value) {
+    $.fn.ajaxLoadTables = function(opts, value) {
 
         return this.each(function(index, table) {
             // El atributo options contendra las opciones de configuracion
@@ -53,7 +52,7 @@
             }
 
             if (typeof opts === 'object') {
-                options = $.extend({}, $.fn.grid5.defaults, opts);
+                options = $.extend({}, $.fn.ajaxLoadTables.defaults, opts);
                 setTableOptions(table, options);
             }
         });
@@ -242,7 +241,7 @@
     }
 
     // Opciones de configuracion por defecto
-    $.fn.grid5.defaults = {
+    $.fn.ajaxLoadTables.defaults = {
         root: 'filas',
         total: 'totalFilas',
         id: 'idFila',
