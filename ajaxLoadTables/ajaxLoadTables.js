@@ -112,11 +112,9 @@
         var $table = $this.closest('table');
                 
         if (opts.params.sortOrder === 'ASC') {
-            $this.attr('class', 'ordenar-descendente');
             opts.params.sortCol = name;
             opts.params.sortOrder = 'DESC';
         } else if (opts.params.sortOrder === 'DESC') {
-            $this.attr('class', 'ordenar-ascendente');
             opts.params.sortCol = name;
             opts.params.sortOrder = 'ASC';
         }
