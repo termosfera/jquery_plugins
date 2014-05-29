@@ -9,8 +9,8 @@
 
             if (typeof opts === 'string' || opts === 'load') {
                 options = getTableOptions(table);
-                
-                if (typeof options === 'undefined') {                    
+
+                if (typeof options === 'undefined') {
                     return; // En caso de no disponer de configuracion detenemos plugin
                 }
 
@@ -43,7 +43,7 @@
                 if (opts === 'registros' && typeof value === 'number') {
                     options.params.limit = value;
                 }
-                    
+                console.log(options);
                 init(table, options);
             }
 
@@ -65,8 +65,7 @@
     }
 
     function getTableOptions(table) {
-        var $table = $(table);
-        var options = $table.data('options');
+        var options = $(table).data('options');
 
         return options;
     }
@@ -86,11 +85,44 @@
 
         $.each(opts.cols, function(i, v) {
             $th = $('<th>' + v.nombre + '</th>');
-            $tr.append($th);
+            
+            if (v.ordenar === true) {
+                if (!opts.params.sorted)
+                    $th.addClass('ordenar');
+                else if (opts.params.sortOrder === 'ASC')
+                    $th.addClass('ordenar-ascendente');
+                else if (opts.params.sortOrder === 'DESC')
+                    $th.addClass('ordenar-descendente');
+                    
+                $th.click(function() {
+                    switchOrder(this, opts, v.dato);
+                });
+                $tr.append($th);
+            } else {
+                $tr.append($th);
+            }
         });
         $thead.append($tr);
 
         return $thead;
+    }
+
+    function switchOrder(element, opts, name) {
+        var $this = $(element);
+        var $table = $this.closest('table');
+                
+        if (opts.params.sortOrder === 'ASC') {
+            $this.attr('class', 'ordenar-descendente');
+            opts.params.sortCol = name;
+            opts.params.sortOrder = 'DESC';
+        } else if (opts.params.sortOrder === 'DESC') {
+            $this.attr('class', 'ordenar-ascendente');
+            opts.params.sortCol = name;
+            opts.params.sortOrder = 'ASC';
+        }
+        opts.params.sorted = true;
+        console.log($this);
+        init($table, opts);
     }
 
     function renderTbody(data, opts) {
@@ -100,19 +132,19 @@
 
         $.each(data.filas, function(rowIndex, libro) {
             $tr = $('<tr>');
-            
+
             $.each(opts.cols, function(columnIndex, column) {
                 if (typeof column.renderer === 'function') {
                     var rendered = column.renderer(rowIndex, columnIndex, data.filas);
                     $td = $('<td>' + rendered + '</td>');
-                    $tr.append($td);                    
+                    $tr.append($td);
                 } else {
                     $td = $('<td>' + libro[column.dato] + '</td>');
-                    $tr.append($td);                    
+                    $tr.append($td);
                 }
             });
             $tbody.append($tr);
-            
+
         });
 
         return $tbody;
@@ -122,27 +154,27 @@
         var $table = $(table);
         var $thead = renderThead(opts);
         var $tbody = renderTbody(data, opts);
-        
+
         paginar(opts);
 
         $table.empty();
         $table.append($thead);
         $table.append($tbody);
     }
-    
+
     function paginar(opts) {
         var $paginador = $("#paginas");
-        
+
         if (typeof $paginador === 'undefined' || !$paginador.is('input'))
             return;
-        
+
         var desde = opts.params.offset;
         var hasta = opts.params.offset + opts.params.limit;
         var total = opts.total;
-        
+
         var placeholder = "Del " + desde + " al " + hasta + " de " + total;
-        
-        $paginador.attr("placeholder", placeholder);        
+
+        $paginador.attr("placeholder", placeholder);
     }
 
     $.fn.ajaxLoadTables.defaults = {
