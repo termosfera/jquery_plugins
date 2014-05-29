@@ -43,7 +43,7 @@
                 if (opts === 'registros' && typeof value === 'number') {
                     options.params.limit = value;
                 }
-                console.log(options);
+                
                 init(table, options);
             }
 
@@ -121,7 +121,7 @@
             opts.params.sortOrder = 'ASC';
         }
         opts.params.sorted = true;
-        console.log($this);
+        
         init($table, opts);
     }
 
