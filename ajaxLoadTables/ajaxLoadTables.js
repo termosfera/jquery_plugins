@@ -14,12 +14,11 @@
             if (typeof opts === 'string' || opts === 'load') {
                 options = getTableOptions(table);
 
-                // En caso de no disponer de configuracion detenemos plugin
                 if (typeof options === 'undefined') {
                     var errorMessage = 'No ha introducido configuracion\n\
                                         El plugin no puede funcionar.'
                     console.error(errorMessage);
-                    return; 
+                    return; // En caso de no disponer de configuracion detenemos plugin
                 }
 
                 if (opts === 'primero') {
@@ -52,7 +51,7 @@
                     options.params.limit = value;
                 }
 
-                renderTable(table, options);
+                init(table, options);
             }
 
             if (typeof opts === 'object') {
@@ -77,7 +76,6 @@
         $.post(opts.url, opts.params, function(data) {
             var jsonData = $.parseJSON(data);
             opts.total = parseInt(jsonData.registros_totales);
-            opts.root = jsonData.filas;
             $table.data('options', opts);
         });
     }
@@ -92,6 +90,21 @@
         var options = $(table).data('options');
 
         return options;
+    }
+
+    /**
+     * Inicia el plugin y por tanto, el renderizado de la tabla.
+     * 
+     * @param table Tabla sobre la que aplicamos el plugin.
+     * @param opts opciones de configuracion del plugin.
+     * 
+     */
+    function init(table, opts) {
+        $.post(opts.url, opts.params, function(data) {
+            var jsonData = $.parseJSON(data);
+            opts.root = jsonData.filas;
+            renderTable(table, jsonData, opts);
+        });
     }
 
     /**
@@ -153,26 +166,27 @@
 
         opts.params.sorted = true;
 
-        renderTable($table, opts);
+        init($table, opts);
     }
 
     /**
      * Renderizado del cuerpo de la tabla.
      * 
+     * @param data Datos obtenidos mediante AJAX de servidor.
      * @param opts Opciones de configuracion de la tabla.
      * @returns Object Elemento TBODY HTML.
      */
-    function renderTbody(opts) {
+    function renderTbody(data, opts) {
         var $tbody = $('<tbody>');
         var $tr;
         var $td;
 
-        $.each(opts.root, function(rowIndex, libro) {
+        $.each(data.filas, function(rowIndex, libro) {
             $tr = $('<tr>');
 
             $.each(opts.cols, function(columnIndex, column) {
                 if (typeof column.renderer === 'function') {
-                    var rendered = column.renderer(rowIndex, columnIndex, opts.root);
+                    var rendered = column.renderer(rowIndex, columnIndex, data.filas);
                     $td = $('<td>' + rendered + '</td>');
                     $tr.append($td);
                 } else {
@@ -191,13 +205,14 @@
      * Renderizado de la tabla.
      * 
      * @param table Tabla sobre la que aplicar renderizado
+     * @param data Datos descargados de servidor.
      * @param opts Opciones de configuracion de la tabla.
      * 
      */
-    function renderTable(table, opts) {
+    function renderTable(table, data, opts) {
         var $table = $(table);
         var $thead = renderThead(opts);
-        var $tbody = renderTbody(opts);
+        var $tbody = renderTbody(data, opts);
 
         paginar(opts);
 
@@ -266,3 +281,4 @@
     };
 
 })(jQuery);
+
