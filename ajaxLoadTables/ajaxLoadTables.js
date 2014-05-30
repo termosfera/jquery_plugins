@@ -76,6 +76,7 @@
         $.post(opts.url, opts.params, function(data) {
             var jsonData = $.parseJSON(data);
             opts.total = parseInt(jsonData.registros_totales);
+            opts.root = jsonData.filas;
             $table.data('options', opts);
         });
     }
@@ -100,11 +101,12 @@
      * 
      */
     function init(table, opts) {
-        $.post(opts.url, opts.params, function(data) {
-            var jsonData = $.parseJSON(data);
-            opts.root = jsonData.filas;
-            renderTable(table, jsonData, opts);
-        });
+//        $.post(opts.url, opts.params, function(data) {
+//            var jsonData = $.parseJSON(data);
+//            opts.root = jsonData.filas;
+//            renderTable(table, jsonData, opts);
+//        });
+        renderTable(table, opts);
     }
 
     /**
@@ -172,21 +174,20 @@
     /**
      * Renderizado del cuerpo de la tabla.
      * 
-     * @param data Datos obtenidos mediante AJAX de servidor.
      * @param opts Opciones de configuracion de la tabla.
      * @returns Object Elemento TBODY HTML.
      */
-    function renderTbody(data, opts) {
+    function renderTbody(opts) {
         var $tbody = $('<tbody>');
         var $tr;
         var $td;
 
-        $.each(data.filas, function(rowIndex, libro) {
+        $.each(opts.root, function(rowIndex, libro) {
             $tr = $('<tr>');
 
             $.each(opts.cols, function(columnIndex, column) {
                 if (typeof column.renderer === 'function') {
-                    var rendered = column.renderer(rowIndex, columnIndex, data.filas);
+                    var rendered = column.renderer(rowIndex, columnIndex, opts.root);
                     $td = $('<td>' + rendered + '</td>');
                     $tr.append($td);
                 } else {
@@ -205,14 +206,13 @@
      * Renderizado de la tabla.
      * 
      * @param table Tabla sobre la que aplicar renderizado
-     * @param data Datos descargados de servidor.
      * @param opts Opciones de configuracion de la tabla.
      * 
      */
-    function renderTable(table, data, opts) {
+    function renderTable(table, opts) {
         var $table = $(table);
         var $thead = renderThead(opts);
-        var $tbody = renderTbody(data, opts);
+        var $tbody = renderTbody(opts);
 
         paginar(opts);
 
