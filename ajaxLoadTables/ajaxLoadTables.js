@@ -62,10 +62,7 @@
     };
 
     /**
-     * Wrapper que asigna atributo options que contiene las opciones de 
-     * configuracion establecidas en el plugin, además añade información 
-     * extra suministrada por el sevidor como el total de filas a añadir en 
-     * la tabla.
+     * Wrapper para transfer con la opcion de renderizar = false.
      * 
      * @param table Referencia a la tabla a la que aplicamos el plugin
      * @param opts Objeto con las opciones de configuracion.
@@ -90,10 +87,9 @@
     /**
      * Gestion de datos y conexion con servidor a traves de AJAX.
      * 
-     * @param {type} table
-     * @param {type} opts
-     * @param {type} render
-     * @returns {undefined}
+     * @param table
+     * @param opts
+     * @param render Booleano que establece si queremos renderizar la tabla.
      */
     function transfer(table, opts, render) {
         var $table = $(table);
