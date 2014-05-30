@@ -14,11 +14,12 @@
             if (typeof opts === 'string' || opts === 'load') {
                 options = getTableOptions(table);
 
+                // En caso de no disponer de configuracion detenemos plugin
                 if (typeof options === 'undefined') {
                     var errorMessage = 'No ha introducido configuracion\n\
                                         El plugin no puede funcionar.'
                     console.error(errorMessage);
-                    return; // En caso de no disponer de configuracion detenemos plugin
+                    return; 
                 }
 
                 if (opts === 'primero') {
@@ -51,7 +52,7 @@
                     options.params.limit = value;
                 }
 
-                init(table, options);
+                renderTable(table, options);
             }
 
             if (typeof opts === 'object') {
@@ -91,22 +92,6 @@
         var options = $(table).data('options');
 
         return options;
-    }
-
-    /**
-     * Inicia el plugin y por tanto, el renderizado de la tabla.
-     * 
-     * @param table Tabla sobre la que aplicamos el plugin.
-     * @param opts opciones de configuracion del plugin.
-     * 
-     */
-    function init(table, opts) {
-//        $.post(opts.url, opts.params, function(data) {
-//            var jsonData = $.parseJSON(data);
-//            opts.root = jsonData.filas;
-//            renderTable(table, jsonData, opts);
-//        });
-        renderTable(table, opts);
     }
 
     /**
@@ -168,7 +153,7 @@
 
         opts.params.sorted = true;
 
-        init($table, opts);
+        renderTable($table, opts);
     }
 
     /**
@@ -283,4 +268,3 @@
     };
 
 })(jQuery);
-
