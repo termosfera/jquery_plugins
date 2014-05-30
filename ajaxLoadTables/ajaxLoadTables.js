@@ -149,14 +149,14 @@
      * 
      * @param element Elemento al que aplicamos la funcion.
      * @param opts Opciones de configuracion de la tabla.
-     * @param name Nombre de la columna del objeto JSON usado para ordenar.
+     * @param columnName Nombre de la columna del objeto JSON usado para ordenar.
      * 
      */
-    function switchOrder(element, opts, name) {
+    function switchOrder(element, opts, columnName) {
         var $this = $(element);
         var $table = $this.closest('table');
 
-        opts.params.sortCol = name;
+        opts.params.sortCol = columnName;
 
         if (opts.params.sortOrder === 'ASC') {
             opts.params.sortOrder = 'DESC';
@@ -234,11 +234,35 @@
         if (typeof $paginador === 'undefined' || !$paginador.is('input'))
             return;
 
-        var desde = opts.params.offset;
-        var hasta = opts.params.offset + opts.params.limit;
-        var total = opts.total;
+        var total = parseInt(opts.total);
+        var offset = parseInt(opts.params.offset);
+        var limit = parseInt(opts.params.limit);
+        var numPagina;
+        var pagina;
+        var ending;
 
-        var placeholder = "Del " + desde + " al " + hasta + " de " + total;
+        var module = (total % limit);
+        
+        if (module === 0)
+            numPagina = total / limit;
+        else
+            numPagina = parseInt((total / limit)) + 1;
+        
+        if (offset === 0)
+            pagina = 1;
+        else if (offset >= total)
+            pagina = numPagina;
+        else
+            pagina = (offset / limit) + 1;
+        
+        if ((offset + limit) >= total)
+            ending = total;
+        else
+            ending = (offset + limit);
+
+        var placeholder = 'Pagina ' + pagina + ' de ' + numPagina + 
+            '. (Registro del ' + offset + ' al ' + ending +
+            ' de ' + total + ')';
 
         $paginador.attr("placeholder", placeholder);
     }
