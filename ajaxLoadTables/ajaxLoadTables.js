@@ -243,11 +243,13 @@
 
         var module = (total % limit);
         
+        // Obtenemos el numero total de paginas
         if (module === 0)
             numPagina = total / limit;
         else
             numPagina = parseInt((total / limit)) + 1;
         
+        // Obtenemos la pagina actual
         if (offset === 0)
             pagina = 1;
         else if (offset >= total)
@@ -255,6 +257,7 @@
         else
             pagina = (offset / limit) + 1;
         
+        // Evitamos que el numero final sea superior al de elementos
         if ((offset + limit) >= total)
             ending = total;
         else
