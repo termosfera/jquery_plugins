@@ -62,22 +62,17 @@
     };
 
     /**
-     * Asigna atributo options que contiene las opciones de configuracion
-     * establecidas en el plugin, además añade información extra suministrada
-     * por el sevidor como el total de filas a añadir en la tabla.
+     * Wrapper que asigna atributo options que contiene las opciones de 
+     * configuracion establecidas en el plugin, además añade información 
+     * extra suministrada por el sevidor como el total de filas a añadir en 
+     * la tabla.
      * 
      * @param table Referencia a la tabla a la que aplicamos el plugin
      * @param opts Objeto con las opciones de configuracion.
      * 
      */
     function setTableOptions(table, opts) {
-        var $table = $(table);
-
-        $.post(opts.url, opts.params, function(data) {
-            var jsonData = $.parseJSON(data);
-            opts.total = parseInt(jsonData.registros_totales);
-            $table.data('options', opts);
-        });
+        transfer(table, opts, false);
     }
 
     /**
@@ -91,6 +86,28 @@
 
         return options;
     }
+    
+    /**
+     * Gestion de datos y conexion con servidor a traves de AJAX.
+     * 
+     * @param {type} table
+     * @param {type} opts
+     * @param {type} render
+     * @returns {undefined}
+     */
+    function transfer(table, opts, render) {
+        var $table = $(table);
+        
+        $.post(opts.url, opts.params, function(data) {
+            var jsonData = $.parseJSON(data);
+            opts.root = jsonData.filas;
+            opts.total = parseInt(jsonData.registros_totales);
+            if (render)
+                renderTable(table, jsonData, opts);
+            else
+                $table.data('options', opts);
+        });
+    }
 
     /**
      * Inicia el plugin y por tanto, el renderizado de la tabla.
@@ -100,11 +117,7 @@
      * 
      */
     function init(table, opts) {
-        $.post(opts.url, opts.params, function(data) {
-            var jsonData = $.parseJSON(data);
-            opts.root = jsonData.filas;
-            renderTable(table, jsonData, opts);
-        });
+        transfer(table, opts, true);
     }
 
     /**
